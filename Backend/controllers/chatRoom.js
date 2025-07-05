@@ -48,7 +48,7 @@ try {
     if(!token)return res.status(400).json({message:"Token not found"});
     const decoded = jwt.verify(token,process.env.JWT_SECRET);
 
-    const chatRooms = await ChatSession.find({chatUserId:decoded.userId})
+    const chatRooms = await ChatSession.find({chatUserId:decoded.id})
     res.status(200).json(chatRooms)
 } catch (error) {
     console.error(error.message)

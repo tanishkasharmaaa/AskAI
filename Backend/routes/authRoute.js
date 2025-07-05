@@ -29,7 +29,18 @@ router.get('/google/callback',passport.authenticate('google',{failureRedirect:'/
     res.redirect("http://localhost:5173")
 })
 
+router.get("/profile", (req, res) => {
+  const token = req.cookies.token;
 
+  if (!token) return res.status(401).json({ message: "Token missing" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.status(200).json({ user: decoded });
+  } catch (err) {
+    res.status(401).json({ message: "Invalid token" });
+  }
+});
 router.get("/logout",(req,res)=>{
     res.clearCookie("token");
     req.logout(()=>{

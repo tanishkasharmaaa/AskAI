@@ -25,7 +25,7 @@ router.get('/google/callback',passport.authenticate('google',{failureRedirect:'/
         secure:false,
         maxAge:24*60*60*1000
     })
-    res.redirect("/auth/profile")
+    res.redirect("http://localhost:5173/textgen")
 })
 
 router.get("/profile",authMiddleware,(req,res)=>{

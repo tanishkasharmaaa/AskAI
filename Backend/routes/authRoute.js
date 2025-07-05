@@ -22,7 +22,8 @@ router.get('/google/callback',passport.authenticate('google',{failureRedirect:'/
     // Send token in HTTP-only cookie
     res.cookie("token",token,{
         httpOnly:true,
-        secure:false,
+        secure:true,
+        sameSite:"None",
         maxAge:24*60*60*1000
     })
     res.redirect("http://localhost:5173/textgen")

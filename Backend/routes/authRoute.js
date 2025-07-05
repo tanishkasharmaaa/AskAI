@@ -3,7 +3,8 @@ const jwt = require("jsonwebtoken")
 const express = require("express");
 const router = express.Router();
 const passport = require("passport")
-const authMiddleware = require("../middleware/authMiddleware")
+const authMiddleware = require("../middleware/authMiddleware");
+const userModel = require("../model/User");
 
 router.get('/',(req,res)=>{
     res.send(`<a href="/auth/google">Login with Google</a>`)
@@ -37,7 +38,7 @@ router.get("/profile", async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await User.findById(decoded.id).select("name email");
+    const user = await userModel.findById(decoded.id).select("name email");
 
     if (!user) return res.status(404).json({ message: "User not found" });
 

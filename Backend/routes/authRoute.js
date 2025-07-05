@@ -44,7 +44,7 @@ router.get("/profile", (req, res) => {
 router.get("/logout",(req,res)=>{
     res.clearCookie("token");
     req.logout(()=>{
-        res.redirect("/auth")
+        res.redirect("http://localhost:5173")
     })
 })
 

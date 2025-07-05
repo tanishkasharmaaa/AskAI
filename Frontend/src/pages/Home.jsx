@@ -7,30 +7,22 @@ export default function Home() {
   const theme = JSON.parse(localStorage.getItem("theme"));
   const options = { year: "numeric", month: "long", day: "numeric" };
   const formattedDate = today.toLocaleDateString("en-US", options);
- const token = document.cookie
-  .split("; ")
-  .find((row) => row.startsWith("token="))
-  ?.split("=")[1];
-
-console.log("Token:", token);
-
-
 
   const handleLogin = () => {
     window.location.href = "https://askai-50ai.onrender.com/auth/google";
   };
-//   useEffect(() => {
-//    // Example
-// fetch("https://askai-50ai.onrender.com/auth/profile", {
-//   method: "GET",
-//   credentials: "include",
-// })
-//   .then((res) => res.json())
-//   .then((data) => console.log("User profile:", data))
-//   .catch((err) => console.error("Fetch error:", err));
+ useEffect(() => {
+   // Example
+fetch("https://askai-50ai.onrender.com/auth/profile", {
+  method: "GET",
+  credentials: "include",
+})
+  .then((res) => res.json())
+  .then((data) => console.log("User profile:", data))
+  .catch((err) => console.error("Fetch error:", err));
 
 
-//   });
+ });
 
   return (
     <Box p={4}>

@@ -26,17 +26,23 @@ router.get('/google/callback',passport.authenticate('google',{failureRedirect:'/
         sameSite:"None",
         maxAge:24*60*60*1000
     })
-    res.redirect("http://localhost:5173")
+    res.redirect("http://localhost:5173/textgen")
 })
 
-router.get("/profile", (req, res) => {
+router.get("/profile", async (req, res) => {
   const token = req.cookies.token;
 
-  if (!token) return res.status(401).json({ message: "Token missing" });
+  if (!token) return res.status(401).json({ message: "No token" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    res.status(200).json({ user: decoded });
+
+    const user = await User.findById(decoded.id).select("name email");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ name: user.name, email: user.email });
+
   } catch (err) {
     res.status(401).json({ message: "Invalid token" });
   }
@@ -44,7 +50,7 @@ router.get("/profile", (req, res) => {
 router.get("/logout",(req,res)=>{
     res.clearCookie("token");
     req.logout(()=>{
-        res.redirect("http://localhost:5173")
+        res.redirect("/auth")
     })
 })
 

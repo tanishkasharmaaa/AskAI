@@ -32,17 +32,14 @@ try {
 }
 
 const deleteChatSession =async(req,res)=>{
-   try {
-    const { id } = req.params;
-
-  
-    await ChatRoom.findByIdAndDelete(id);
-
-    res.status(200).json({ message: "Chat room deleted successfully" }); // ✅ important
-  } catch (err) {
-    console.error("Delete Error:", err);
-    res.status(500).json({ message: "Internal Server error" }); // only sent on error
-  }
+    try {
+        const session = await ChatSession.findByIdAndDelete(req.params.id);
+        
+        res.status(200).json({message:"Chat session deleted successfully"})
+    } catch (error) {
+        console.error(error.message)
+        res.status(500).json({message:"Internal Server error"})
+    }
 }
 
 const displayChatRooms = async(req,res)=>{

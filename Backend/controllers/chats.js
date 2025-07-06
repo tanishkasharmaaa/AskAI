@@ -48,7 +48,7 @@ const finalPrompt = isVague && lastChat
     res.status(200).json({
       message: "Chat added successfully",
       chatRoomId,
-      chat})
+      updatedSession: existingChatRoom})
     } catch (error) {
         console.error("Error updating chat session:",error);
         res.status(500).json({error:"Failed to add chat to the session"})

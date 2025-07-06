@@ -109,5 +109,19 @@ const updateChat = async (req, res) => {
   }
 };
 
+const displayAllChats = async(req,res)=>{
+const chatId = req.params.id
+try {
+    const findChatSession = await ChatSession.findById(chatId)
+    const findChat = findChatSession.chats
+    
+    res.status(200).json({chats:findChat})
 
-module.exports = {chat,deleteChat,updateChat}
+} catch (error) {
+    console.error(error.message)
+    res.status(500).json({message:"500 Internal Server error"})
+}
+}
+
+
+module.exports = {chat,deleteChat,updateChat,displayAllChats}

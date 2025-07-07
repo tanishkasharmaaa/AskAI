@@ -17,7 +17,7 @@ router.get('/google/callback',passport.authenticate('google',{failureRedirect:'/
     const user = req.user;
 
     const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{
-        expiresIn:"1d"
+        expiresIn:"4d"
     })
 
     // Send token in HTTP-only cookie

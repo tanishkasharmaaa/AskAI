@@ -8,24 +8,22 @@ const jwt = require("jsonwebtoken")
 const sharp = require("sharp")
 const axios = require("axios")
 
-const editImage = async(req,res)=>{
-    try {
+const editImage = async (req, res) => {
+  try {
     const { prompt } = req.body;
     const filePath = req.file.path;
 
-    // === Token validation
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(400).json({ message: "Token not found" });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.id;
 
-    // === Get instructions from Gemini (utils)
     const instruction = await getEditInstructions(prompt);
 
     let image = sharp(filePath);
     const edits = instruction.split(",").map((e) => e.trim());
-    
+
     for (let edit of edits) {
       if (edit === "grayscale") image = image.grayscale();
       else if (edit.startsWith("resize")) {
@@ -58,14 +56,15 @@ const editImage = async(req,res)=>{
       }
     }
 
-    
-    const editedImagePath = `uploads/edited-${Date.now()}.png`;
+    // ✅ Save to /tmp folder instead of uploads/
+    const editedImagePath = path.join("/tmp", `edited-${Date.now()}.png`);
     await image.toFile(editedImagePath);
 
     const uploaded = await cloudinary.uploader.upload(editedImagePath, {
       folder: "AskAI_Images",
     });
 
+    // ✅ Cleanup both temp files
     fs.unlinkSync(filePath);
     fs.unlinkSync(editedImagePath);
 
@@ -84,7 +83,7 @@ const editImage = async(req,res)=>{
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to edit and upload image" });
   }
-}
+};
 
 
 const updateEditPrompt = async (req, res) => {
@@ -104,9 +103,9 @@ const updateEditPrompt = async (req, res) => {
     if (imageDoc.userId.toString() !== userId)
       return res.status(403).json({ message: "Unauthorized" });
 
-    // === Download original image from Cloudinary ===
+    // ✅ Save original image temporarily to /tmp
     const originalUrl = imageDoc.imageData;
-    const originalFilePath = `uploads/original-${Date.now()}.png`;
+    const originalFilePath = path.join("/tmp", `original-${Date.now()}.png`);
 
     const writer = fs.createWriteStream(originalFilePath);
     const response = await axios({
@@ -121,7 +120,6 @@ const updateEditPrompt = async (req, res) => {
       writer.on("error", reject);
     });
 
-    // === Get new instructions from Gemini ===
     const instruction = await getEditInstructions(prompt);
     console.log("Updated edit instructions:", instruction);
 
@@ -160,19 +158,19 @@ const updateEditPrompt = async (req, res) => {
       }
     }
 
-    // === Save and upload new image
-    const newPath = `uploads/updated-${Date.now()}.png`;
+    // ✅ Save new image to /tmp
+    const newPath = path.join("/tmp", `updated-${Date.now()}.png`);
     await image.toFile(newPath);
 
     const uploadResult = await cloudinary.uploader.upload(newPath, {
       folder: "AskAI_Images",
     });
 
-    // === Cleanup
+    // ✅ Cleanup temp files
     fs.unlinkSync(originalFilePath);
     fs.unlinkSync(newPath);
 
-    // === Update DB
+    // ✅ Update DB
     imageDoc.prompt = prompt;
     imageDoc.description = `Updated edit applied: ${instruction}`;
     imageDoc.imageData = uploadResult.secure_url;
@@ -187,6 +185,7 @@ const updateEditPrompt = async (req, res) => {
     res.status(500).json({ message: "Failed to update image" });
   }
 };
+
 
 const displayAll =async(req,res)=>{
   try {

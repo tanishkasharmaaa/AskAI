@@ -73,5 +73,18 @@ const displayAll =async(req,res)=>{
       res.status(500).json({error})
   }
 }
+const deleteImage = async(req,res)=>{
+  try {
+      const token = req.cookies.token||req.headers.authorization.split(" ")[1];
+      if(!token)return res.status(400).json({message:"Token not found"});
+      const decoded = jwt.verify(token,process.env.JWT_SECRET);
+  
+      const images = await AiGenerate.findByIdAndDelete(req.params.id)
+      res.status(200).json({message:"Deleted successfully"})
+  } catch (error) {
+      console.error(error.message)
+      res.status(500).json({error})
+  }
+}
 
-module.exports = {generateImage,updateImage,displayAll}
+module.exports = {generateImage,updateImage,displayAll,deleteImage}

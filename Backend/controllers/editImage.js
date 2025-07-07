@@ -3,16 +3,21 @@ const editmodel = require("../model/edit");
 const getEditInstructions = require("../utils/getEditInstructions");
 const cloudinary = require("cloudinary")
 const fs = require("fs")
-const path = require("path")
+const os = require("os");
+const path = require("path");
 const jwt = require("jsonwebtoken")
 const sharp = require("sharp")
 const axios = require("axios")
 
 const editImage = async (req, res) => {
   try {
-    const { prompt } = req.body;
-    const filePath = req.file.path;
+    console.log("📁 Uploaded file:", req.file);
+    console.log("✏️ Prompt:", req.body.prompt);
 
+    const { prompt } = req.body;
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const filePath = req.file.path;
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(400).json({ message: "Token not found" });
 
@@ -20,10 +25,9 @@ const editImage = async (req, res) => {
     const userId = decoded.id;
 
     const instruction = await getEditInstructions(prompt);
-
     let image = sharp(filePath);
-    const edits = instruction.split(",").map((e) => e.trim());
 
+    const edits = instruction.split(",").map((e) => e.trim());
     for (let edit of edits) {
       if (edit === "grayscale") image = image.grayscale();
       else if (edit.startsWith("resize")) {
@@ -56,17 +60,15 @@ const editImage = async (req, res) => {
       }
     }
 
-    // ✅ Save to /tmp folder instead of uploads/
-    const editedImagePath = path.join("/tmp", `edited-${Date.now()}.png`);
-    await image.toFile(editedImagePath);
+    const tmpPath = path.join(os.tmpdir(), `edited-${Date.now()}.png`);
+    await image.toFile(tmpPath);
 
-    const uploaded = await cloudinary.uploader.upload(editedImagePath, {
+    const uploaded = await cloudinary.uploader.upload(tmpPath, {
       folder: "AskAI_Images",
     });
 
-    // ✅ Cleanup both temp files
     fs.unlinkSync(filePath);
-    fs.unlinkSync(editedImagePath);
+    fs.unlinkSync(tmpPath);
 
     const saved = await editmodel.create({
       userId,
@@ -75,12 +77,9 @@ const editImage = async (req, res) => {
       imageData: uploaded.secure_url,
     });
 
-    res.status(201).json({
-      message: "Image edited and uploaded successfully",
-      data: saved,
-    });
+    res.status(201).json({ message: "Image edited and uploaded successfully", data: saved });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("🔥 Server error in editImage:", error);
     res.status(500).json({ error: "Failed to edit and upload image" });
   }
 };

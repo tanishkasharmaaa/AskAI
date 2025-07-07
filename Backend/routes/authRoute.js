@@ -42,7 +42,7 @@ router.get("/profile", async (req, res) => {
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.json({ name: user.name, email: user.email });
+    res.json({ name: user.name, email: user.email,photo:user.photo });
 
   } catch (err) {
     res.status(401).json({ message: "Invalid token" });

@@ -58,7 +58,7 @@ const finalPrompt = isVague && lastChat
 const deleteChat=async(req,res)=>{
 const chatId = req.params.id
 try {
-    const findChatSession = await ChatSession.findByIdAndDelete(chatId)
+    const findChatSession = await ChatSession.findById(chatId)
     const findChat = findChatSession.chats.filter((chat)=>chat.chatId!==req.params.chatId)
     await findChat.save()
     res.status(200).json({message:"Chat deleted Successfully"})

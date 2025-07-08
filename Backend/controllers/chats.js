@@ -77,37 +77,34 @@ const updateChat = async (req, res) => {
   }
 
   try {
-    const result = await generate(prompt);
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) {
+      return res.status(400).json({ error: "Prompt cannot be empty" });
+    }
+
+    const result = await generate(trimmedPrompt); // Make sure it returns { text: "..." }
+
     const session = await ChatSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ message: "Chat session not found" });
 
-    if (!session) {
-      return res.status(404).json({ message: "Chat session not found" });
-    }
-
-   
     const chatToUpdate = session.chats.id(req.params.chatId);
+    if (!chatToUpdate) return res.status(404).json({ message: "Chat not found" });
 
-    if (!chatToUpdate) {
-      return res.status(404).json({ message: "Chat not found in the session" });
-    }
-
-   
-    chatToUpdate.question = prompt;
+    chatToUpdate.question = trimmedPrompt;
     chatToUpdate.answer = result.text;
 
-   
-    const updatedSession = await session.save();
+    await session.save();
 
     res.status(200).json({
       message: "Chat updated successfully",
-      updatedChat: chatToUpdate, // Just the updated chat
-      chatSession: updatedSession // Full session if needed
+      updatedChat: chatToUpdate
     });
   } catch (error) {
     console.error("Update error:", error.message);
-    res.status(500).json({ message: "500 Internal Server Error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 const displayAllChats = async(req,res)=>{
 const chatId = req.params.id

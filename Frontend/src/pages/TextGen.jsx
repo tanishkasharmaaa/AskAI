@@ -16,17 +16,22 @@ import {
   Link,
   Text,
   Divider,
+  Toast,
+  useToast,
+  Textarea,
 } from "@chakra-ui/react";
 import { Icon } from "@chakra-ui/react";
+import { IoCopyOutline } from "react-icons/io5";
 import {
   HamburgerIcon,
   AddIcon,
   CloseIcon,
   DeleteIcon,
 } from "@chakra-ui/icons";
-import { useEffect, useState } from "react";
+import React, { Suspense, useContext, useEffect, useState } from "react";
 import ModalForm from "../components/Modal";
-import ChatResponse from "../components/ChatResponse";
+import { GoPencil } from "react-icons/go";
+const ChatResponse = React.lazy(() => import("../components/ChatResponse"));
 
 export default function TextGeneration() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -36,9 +41,32 @@ export default function TextGeneration() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState([]);
+  const [editId, setEditId] = useState(null);
+  const [updatePrompt, setUpdatePrompt] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const light = JSON.parse(localStorage.getItem("theme"));
+  const toast = useToast();
 
   const isMobile = useBreakpointValue({ base: true, md: false, sm: false });
+
+  async function allChats() {
+    try {
+      const res = await fetch(
+        `https://askai-50ai.onrender.com/ai/chats/${selectedChat._id}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
+      const data = await res.json();
+
+      setMessages(data.chats);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   async function handleChatRooms() {
     try {
@@ -78,6 +106,24 @@ export default function TextGeneration() {
     }
   }
 
+  async function handleDeleteChat(id) {
+    console.log(selectedChat._id, id);
+    try {
+      const res = await fetch(
+        `https://askai-50ai.onrender.com/ai/chat/${selectedChat._id}/${id}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
+      const data = await res.json();
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   async function handleSendPrompt() {
     if (!prompt.trim()) return;
     setLoading(true);
@@ -96,12 +142,10 @@ export default function TextGeneration() {
       );
 
       const data = await res.json();
-      console.log(data.chat.answer);
+      const output = data;
+      console.log(output)
       if (res.ok) {
-        setMessages((prev) => [
-          ...prev,
-          { prompt, response: data.chat.answer },
-        ]);
+        setMessages((prev) => [...prev, { prompt, response: output }]);
         setPrompt("");
       }
     } catch (err) {
@@ -111,16 +155,356 @@ export default function TextGeneration() {
     }
   }
 
+  async function handleUpdateChat(id) {
+  try {
+    const res = await fetch(
+      `https://askai-50ai.onrender.com/ai/updateChat/${selectedChat._id}/${id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ prompt: updatePrompt }),
+      }
+    );
+
+    const data = await res.json();
+    const updatedChat = data.updatedChat;
+
+    if (res.ok) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === id
+            ? {
+                ...msg,
+                prompt: updatedChat.question,
+                answer: updatedChat.answer,
+              }
+            : msg
+        )
+      );
+
+      toast({
+        title: "Updated!",
+        description: "Prompt and response updated successfully.",
+        status: "success",
+        duration: 1500,
+        isClosable: true,
+      });
+
+      setEditId(null);
+      setUpdatePrompt("");
+    } else {
+      throw new Error(data.message || "Server error");
+    }
+  } catch (error) {
+    console.error("Update error:", error);
+    toast({
+      title: "Error",
+      description: "Failed to update the prompt.",
+      status: "error",
+      duration: 1500,
+      isClosable: true,
+    });
+  }
+}
+
+  
+  async function handleUpdateChat(id) {
+  try {
+    const res = await fetch(
+      `https://askai-50ai.onrender.com/ai/updateChat/${selectedChat._id}/${id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          prompt: updatePrompt,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update");
+    }
+
+    const updated = data.updatedChat;
+
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg._id === id
+          ? { ...msg, prompt: updated.question, answer: updated.answer }
+          : msg
+      )
+    );
+
+    setEditId(null);
+    setUpdatePrompt("");
+
+    toast({
+      title: "Updated!",
+      description: "Chat prompt and response updated.",
+      status: "success",
+      duration: 1500,
+      isClosable: true,
+    });
+  } catch (error) {
+    console.error("Update error:", error.message);
+    toast({
+      title: "Error",
+      description: error.message || "Update failed",
+      status: "error",
+      duration: 1500,
+      isClosable: true,
+    });
+  }
+}
+
+
   useEffect(() => {
+    if (selectedChat?._id) {
+      allChats();
+    }
     handleChatRooms();
-  }, [refreshKey]);
+  }, [selectedChat, refreshKey]);
+
   return (
-    <>
+    <Box pl={5} pr={5}>
       {isMobile ? (
         <>
-          <Flex mt={1} ml={1}>
+          <Flex mt={1} ml={1} pt={1} pb={1}>
             <Icon as={AddIcon} onClick={onOpen} />
           </Flex>
+          <Box
+            border="none"
+            width="100%"
+            p={4}
+            display="flex"
+            flexDirection="column"
+            justifyContent="space-between"
+          >
+            {selectedChat ? (
+              <>
+                <Box>
+                  <Heading size="md" mb={1}>
+                    {selectedChat.chatTitle}
+                  </Heading>
+
+                  {/* Chat messages */}
+                  <Box
+                    flex="1"
+                    overflowY="auto"
+                    height={{
+                      base: "70vh",
+                      sm: "70vh",
+                      md: "70vh",
+                      lg: "70vh",
+                      xl: "70vh",
+                    }}
+                    border="1px solid #ddd"
+                    p={4}
+                    mb={4}
+                    borderRadius="md"
+                  >
+                    {messages.map((msg, idx) => (
+                      <Box key={idx} mb={3}>
+                        <Flex justifyContent={"flex-end"}>
+                          <Box
+                            border={"solid"}
+                            borderRadius={"md"}
+                            p={2}
+                            bg={light == true ? "gray.200" : "gray.600"}
+                          >
+                            {editId == msg._id ? (
+                              <>
+                                <Textarea
+                                  value={updatePrompt}
+                                  onChange={(e) =>
+                                    setUpdatePrompt(e.target.value)
+                                  }
+                                  autoFocus
+                                />
+                                <Button
+                                  p={"none"}
+                                  bg={"none"}
+                                  value={updatePrompt}
+                                  onClick={() => handleUpdateChat(msg._id)}
+                                >
+                                  ✓
+                                </Button>
+                                <Button
+                                  p={"none"}
+                                  bg={"none"}
+                                  onClick={() => setEditId(null)}
+                                >
+                                  ✕
+                                </Button>
+                              </>
+                            ) : (
+                              <Text>{msg.question}</Text>
+                            )}
+                          </Box>
+                           <Button
+                                bg="transparent"
+                                size="sm"
+                                color={light ? "black" : "white"}
+                                onClick={async () => {
+                                  if (!msg.question) {
+                                    toast({
+                                      title: "Nothing to copy",
+                                      description:
+                                        "Prompt is empty or unavailable.",
+                                      status: "warning",
+                                      duration: 1500,
+                                      isClosable: true,
+                                    });
+                                    return;
+                                  }
+
+                                  try {
+                                    await navigator.clipboard.writeText(
+                                      msg.question
+                                    );
+                                    toast({
+                                      title: "Copied!",
+                                      description:
+                                        "Prompt copied to clipboard.",
+                                      status: "success",
+                                      duration: 1500,
+                                      isClosable: true,
+                                    });
+                                  } catch (err) {
+                                    console.error(
+                                      "Clipboard copy failed:",
+                                      err
+                                    );
+                                    toast({
+                                      title: "Failed!",
+                                      description:
+                                        "Could not copy to clipboard.",
+                                      status: "error",
+                                      duration: 1500,
+                                      isClosable: true,
+                                    });
+                                  }
+                                }}
+                              >
+                                <Icon
+                                  as={IoCopyOutline}
+                                  color={light ? "black" : "white"}
+                                />
+                              </Button>
+                          <Button
+                            bg={"none"}
+                            pt={1}
+                            pb={1}
+                            p={1}
+                            onClick={() => {
+                              setEditId(msg._id);
+                              setUpdatePrompt(msg.question);
+                            }}
+                          >
+                            <Icon as={GoPencil} />
+                          </Button>
+                          <Button
+                            pt={1}
+                            pb={1}
+                            p={1}
+                            onClick={() => handleDeleteChat(msg.chatId)}
+                          >
+                            <Icon as={DeleteIcon} />
+                          </Button>
+                        </Flex>
+                        <br />
+                        <Flex justifyContent={"flex-start"}>
+                          <Box
+                            border={"solid"}
+                            borderRadius={"md"}
+                            p={2}
+                            bg={light == true ? "blue.200" : "blue.600"}
+                          >
+                            <Suspense fallback={<div>Loading...</div>}>
+                              <ChatResponse content={msg.answer} />
+                            </Suspense>
+                          </Box>
+                        </Flex>
+                        <Flex>
+                          <Button
+                            bg="transparent"
+                            size="sm"
+                            color={light ? "black" : "white"}
+                            onClick={async () => {
+                              if (!msg.answer) {
+                                toast({
+                                  title: "Nothing to copy",
+                                  description:
+                                    "Prompt is empty or unavailable.",
+                                  status: "warning",
+                                  duration: 1500,
+                                  isClosable: true,
+                                });
+                                return;
+                              }
+
+                              try {
+                                await navigator.clipboard.writeText(msg.answer);
+                                toast({
+                                  title: "Copied!",
+                                  description: "Prompt copied to clipboard.",
+                                  status: "success",
+                                  duration: 1500,
+                                  isClosable: true,
+                                });
+                              } catch (err) {
+                                console.error("Clipboard copy failed:", err);
+                                toast({
+                                  title: "Failed!",
+                                  description: "Could not copy to clipboard.",
+                                  status: "error",
+                                  duration: 1500,
+                                  isClosable: true,
+                                });
+                              }
+                            }}
+                          >
+                            <Icon
+                              as={IoCopyOutline}
+                              color={light ? "black" : "white"}
+                            />
+                          </Button>
+                        </Flex>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+
+                {/* Input prompt */}
+                <Box display="flex" gap={2}>
+                  <Input
+                    placeholder="Ask something..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                  />
+                  <Button
+                    colorScheme="blue"
+                    onClick={handleSendPrompt}
+                    isLoading={loading}
+                  >
+                    Send
+                  </Button>
+                </Box>
+              </>
+            ) : (
+              <Flex minH="80vh" justifyContent="center" alignItems="center">
+                <Box textAlign={"center"}>
+                  <Heading fontSize={"5xl"}>
+                    Select a ChatRoom or create one
+                  </Heading>
+                </Box>
+              </Flex>
+            )}
+          </Box>
         </>
       ) : (
         <>
@@ -145,7 +529,7 @@ export default function TextGeneration() {
                       justify={"space-between"}
                       overflow={"hidden"}
                     >
-                      <Box w="100%">
+                      <Box w="100%" borderRadius={"none"} bg={"blue.400"}>
                         <Link
                           display="block"
                           px={4}
@@ -166,7 +550,10 @@ export default function TextGeneration() {
                         </Link>{" "}
                       </Box>
                       <Box>
-                        <Button onClick={() => handleDeleteChatRoom(el._id)}>
+                        <Button
+                          onClick={() => handleDeleteChatRoom(el._id)}
+                          bg={"none"}
+                        >
                           <Icon as={DeleteIcon} />
                         </Button>
                       </Box>
@@ -178,7 +565,7 @@ export default function TextGeneration() {
               {/* Right Chat Window */}
             </Box>
             <Box
-              border="1px solid"
+              border="none"
               width="75%"
               p={4}
               display="flex"
@@ -196,24 +583,191 @@ export default function TextGeneration() {
                     <Box
                       flex="1"
                       overflowY="auto"
-                      maxHeight="70vh"
-                      border="1px solid #ddd"
+                      maxHeight={["70vh", "75vh", "85vh"]}
+                      border="none"
                       p={4}
                       mb={4}
                       borderRadius="md"
-                      bg="gray"
                     >
                       {messages.map((msg, idx) => (
                         <Box key={idx} mb={3}>
-                          <Text fontWeight="bold">You:</Text>
-                          <Text>{msg.prompt}</Text>
+                          <Flex justifyContent={"flex-end"}>
+                            <Box
+                              border={"solid"}
+                              borderRadius={"md"}
+                              p={2}
+                              bg={light == true ? "gray.200" : "gray.600"}
+                            >
+                              {editId == msg.chatId ? (
+                                <>
+                                  <Textarea
+                                    value={updatePrompt}
+                                    onChange={(e) =>
+                                      setUpdatePrompt(e.target.value)
+                                    }
+                                    autoFocus
+                                  />
+                                  <Button
+                                    p={"none"}
+                                    bg={"none"}
+                                    value={updatePrompt}
+                                    onClick={() => handleUpdateChat(msg._id)}
+                                  >
+                                    ✓
+                                  </Button>
+                                  <Button
+                                    p={"none"}
+                                    bg={"none"}
+                                    onClick={() => setEditId(null)}
+                                  >
+                                    ✕
+                                  </Button>
+                                </>
+                              ) : (
+                                <Text>{msg.question}</Text>
+                              )}
+                            </Box>
+                             <Button
+                                bg="transparent"
+                                size="sm"
+                                color={light ? "black" : "white"}
+                                onClick={async () => {
+                                  if (!msg.question) {
+                                    toast({
+                                      title: "Nothing to copy",
+                                      description:
+                                        "Prompt is empty or unavailable.",
+                                      status: "warning",
+                                      duration: 1500,
+                                      isClosable: true,
+                                    });
+                                    return;
+                                  }
 
-                          <Text fontWeight="bold" mt={2}>
-                            AI:
-                          </Text>
-                          <ChatResponse content={{ response: msg.response }} />
+                                  try {
+                                    await navigator.clipboard.writeText(
+                                      msg.question
+                                    );
+                                    toast({
+                                      title: "Copied!",
+                                      description:
+                                        "Prompt copied to clipboard.",
+                                      status: "success",
+                                      duration: 1500,
+                                      isClosable: true,
+                                    });
+                                  } catch (err) {
+                                    console.error(
+                                      "Clipboard copy failed:",
+                                      err
+                                    );
+                                    toast({
+                                      title: "Failed!",
+                                      description:
+                                        "Could not copy to clipboard.",
+                                      status: "error",
+                                      duration: 1500,
+                                      isClosable: true,
+                                    });
+                                  }
+                                }}
+                              >
+                                <Icon
+                                  as={IoCopyOutline}
+                                  color={light ? "black" : "white"}
+                                />
+                              </Button>
+                            <Button
+                              bg={"none"}
+                              pt={1}
+                              pb={1}
+                              p={1}
+                              onClick={() => {
+                                setEditId(msg.chatId);
+                                setUpdatePrompt(msg.question);
+                              }}
+                            >
+                              <Icon as={GoPencil} />
+                            </Button>
+                            <Button
+                              bg={"none"}
+                              pt={1}
+                              pb={1}
+                              p={1}
+                              onClick={() => handleDeleteChat(msg._id)}
+                            >
+                              <Icon
+                                as={DeleteIcon}
+                                color={light == true ? "black" : "white"}
+                              />
+                            </Button>
+                          </Flex>
 
-                          <Divider my={2} />
+                          <br />
+                          <Flex justifyContent={"flex-start"}>
+                            <Box
+                              border={"solid"}
+                              borderRadius={"md"}
+                              p={2}
+                              bg={light == true ? "blue.200" : "blue.600"}
+                            >
+                              <Suspense fallback={<div>Loading...</div>}>
+                                <ChatResponse content={msg.answer} />
+                              </Suspense>
+                            </Box>
+                            <Flex>
+                              <Button
+                                bg="transparent"
+                                size="sm"
+                                color={light ? "black" : "white"}
+                                onClick={async () => {
+                                  if (!msg.answer) {
+                                    toast({
+                                      title: "Nothing to copy",
+                                      description:
+                                        "Prompt is empty or unavailable.",
+                                      status: "warning",
+                                      duration: 1500,
+                                      isClosable: true,
+                                    });
+                                    return;
+                                  }
+
+                                  try {
+                                    await navigator.clipboard.writeText(
+                                      msg.answer
+                                    );
+                                    toast({
+                                      title: "Copied!",
+                                      description:
+                                        "Prompt copied to clipboard.",
+                                      status: "success",
+                                      duration: 1500,
+                                      isClosable: true,
+                                    });
+                                  } catch (err) {
+                                    console.error(
+                                      "Clipboard copy failed:",
+                                      err
+                                    );
+                                    toast({
+                                      title: "Failed!",
+                                      description:
+                                        "Could not copy to clipboard.",
+                                      status: "error",
+                                      duration: 1500,
+                                      isClosable: true,
+                                    });
+                                  }
+                                }}
+                              >
+                                <Icon
+                                  as={IoCopyOutline}
+                                  color={light ? "black" : "white"}
+                                />
+                              </Button>
+                            </Flex>
+                          </Flex>
                         </Box>
                       ))}
                     </Box>
@@ -236,7 +790,13 @@ export default function TextGeneration() {
                   </Box>
                 </>
               ) : (
-                <Text>Select a chat room to start chatting</Text>
+                <Flex minH="80vh" justifyContent="center" alignItems="center">
+                  <Box textAlign={"center"}>
+                    <Heading fontSize={"5xl"}>
+                      Select a ChatRoom or create one
+                    </Heading>
+                  </Box>
+                </Flex>
               )}
             </Box>
           </Flex>
@@ -276,6 +836,10 @@ export default function TextGeneration() {
                         color: "black",
                       }}
                       _active={{ bg: "blue.200" }}
+                      onClick={() => {
+                        setSelectedChat(el);
+                        onClose();
+                      }}
                     >
                       {el.chatTitle}
                     </Link>{" "}
@@ -288,13 +852,15 @@ export default function TextGeneration() {
                 </Flex>
               ))}
 
-              <Flex justifyContent={"center"}>
-                <Text>No Chats are there Add new chat</Text>
-              </Flex>
+              {chatroom.length == 0 ? (
+                <Flex justifyContent={"center"}>
+                  <Text>No Chats are there Add new chat</Text>
+                </Flex>
+              ) : null}
             </VStack>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
-    </>
+    </Box>
   );
 }

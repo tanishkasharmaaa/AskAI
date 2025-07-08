@@ -1,39 +1,27 @@
 import { Text, Box, Flex, Heading, Divider, Button } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { useEffect, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaGoogle } from "react-icons/fa";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Home() {
   const today = new Date(Date.now());
   const theme = JSON.parse(localStorage.getItem("theme"));
   const options = { year: "numeric", month: "long", day: "numeric" };
   const formattedDate = today.toLocaleDateString("en-US", options);
-  const userPresent = localStorage.getItem("userInfo")
-  if(userPresent){
-    window.location.href = "/textgen"
-  }
-  
+  const { isAuthenticated } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/textgen");
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleLogin = () => {
+    // 👇 Redirect to backend Google OAuth
     window.location.href = "https://askai-50ai.onrender.com/auth/google";
   };
-
-  function handleuser (user){
-   localStorage.setItem("userInfo",JSON.stringify(user))
-  }
-
- useEffect(() => {
-    fetch("https://askai-50ai.onrender.com/auth/profile", {
-      method: "GET",
-      credentials: "include",
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Not authenticated");
-        }
-        return res.json();
-      })
-      .then((data) => handleuser(data))
-      .catch((err) => console.error("Fetch error:", err));
-  }, []);
 
   return (
     <Box p={4}>
@@ -42,7 +30,8 @@ export default function Home() {
           {formattedDate}
         </Text>
       </Flex>
-      <Flex justifyContent={"center"}>
+      {/** <Flex >*/}
+      <Box textAlign={"center"}>
         <Heading
           fontFamily={
             '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif'
@@ -51,7 +40,9 @@ export default function Home() {
         >
           Introducing AskAI
         </Heading>
-      </Flex>
+      </Box>
+
+      {/**</Box></Flex>*/}
       <br />
       <Box>
         <Flex justifyContent={"center"}>

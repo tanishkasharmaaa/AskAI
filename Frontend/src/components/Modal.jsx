@@ -16,6 +16,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
+import React from "react";
 
 export default function ModalForm({ func = () => {} }) {
   const { isOpen, onClose, onOpen } = useDisclosure();
@@ -48,7 +49,7 @@ export default function ModalForm({ func = () => {} }) {
       const data = await res.json();
      
 if (res.ok) {
-  await func(); // 🛠️ Add `await` to wait for updated chat list
+  await func(); 
   onClose();
   toast({
     title: "Success!",

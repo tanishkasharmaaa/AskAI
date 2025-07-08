@@ -27,7 +27,7 @@ router.get('/google/callback',passport.authenticate('google',{failureRedirect:'/
         sameSite:"None",
         maxAge:24*60*60*1000
     })
-    res.redirect("http://localhost:5173/textgen")
+    res.redirect("https://ask-ai-vgt6.vercel.app/textgen")
 })
 
 router.get("/profile", async (req, res) => {

@@ -77,32 +77,41 @@ const updateChat = async (req, res) => {
   }
 
   try {
-    const trimmedPrompt = prompt.trim();
-    if (!trimmedPrompt) {
-      return res.status(400).json({ error: "Prompt cannot be empty" });
-    }
-
-    const result = await generate(trimmedPrompt); // Make sure it returns { text: "..." }
-
-    const session = await ChatSession.findById(req.params.id);
-    if (!session) return res.status(404).json({ message: "Chat session not found" });
-
-    const chatToUpdate = session.chats.id(req.params.chatId);
-    if (!chatToUpdate) return res.status(404).json({ message: "Chat not found" });
-
-    chatToUpdate.question = trimmedPrompt;
-    chatToUpdate.answer = result.text;
-
-    await session.save();
-
-    res.status(200).json({
-      message: "Chat updated successfully",
-      updatedChat: chatToUpdate
-    });
-  } catch (error) {
-    console.error("Update error:", error.message);
-    res.status(500).json({ message: "Internal server error" });
+  const trimmedPrompt = prompt.trim();
+  if (!trimmedPrompt) {
+    return res.status(400).json({ error: "Prompt cannot be empty" });
   }
+
+  console.log("Generating response for:", trimmedPrompt);
+  const result = await generate(trimmedPrompt);
+
+  const session = await ChatSession.findById(req.params.id);
+  if (!session) {
+    console.log("Session not found:", req.params.id);
+    return res.status(404).json({ message: "Chat session not found" });
+  }
+
+  const chatToUpdate = session.chats.id(req.params.chatId);
+  if (!chatToUpdate) {
+    console.log("Chat ID not found in session:", req.params.chatId);
+    return res.status(404).json({ message: "Chat not found" });
+  }
+
+  chatToUpdate.question = trimmedPrompt;
+  chatToUpdate.answer = result.text;
+
+  await session.save();
+
+  res.status(200).json({
+    message: "Chat updated successfully",
+    updatedChat: chatToUpdate
+  });
+
+} catch (error) {
+  console.error("Update error (full):", error);
+  res.status(500).json({ message: "Internal server error" });
+}
+
 };
 
 

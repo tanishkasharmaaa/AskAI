@@ -142,111 +142,116 @@ export default function Navbar() {
                 </Icon>
               </Box>
             </Flex>
-            <Drawer
-              placement={placement}
-              onClose={onClose}
-              isOpen={isOpen}
-              size={"xs"}
+<Drawer
+  placement={placement}
+  onClose={onClose}
+  isOpen={isOpen}
+  size={"xs"}
+>
+  <DrawerOverlay />
+  <DrawerContent>
+    <DrawerHeader borderBottomWidth="1px">
+      <Flex>
+        <Box>
+          <Heading size={"md"}>Menu</Heading>
+        </Box>
+        <Spacer />
+        <Box>
+          <Icon onClick={onClose} as={CloseIcon} boxSize={3}></Icon>
+        </Box>
+      </Flex>
+    </DrawerHeader>
+
+    <DrawerBody onClick={onClose}>  {/* 👈 Added onClick here */}
+      <VStack align="start" spacing={4} mt={4}>
+        {!userInfo ? (
+          <Flex justifyContent={"center"}>
+            <Button
+              leftIcon={<FaGoogle />}
+              colorScheme="red"
+              variant="outline"
+              size="md"
+              px={6}
+              py={2}
+              borderRadius="md"
+              _hover={{ bg: "red.50" }}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevents Drawer from closing before login fires
+                handleLogin();
+              }}
             >
-              <DrawerOverlay />
-              <DrawerContent>
-                <DrawerHeader borderBottomWidth="1px">
-                  <Flex>
-                    <Box>
-                      <Heading size={"md"}>Menu</Heading>
-                    </Box>
-                    <Spacer />
-                    <Box>
-                      <Icon onClick={onClose} as={CloseIcon} boxSize={3}></Icon>
-                    </Box>
-                  </Flex>
-                </DrawerHeader>
+              Login with Google
+            </Button>
+          </Flex>
+        ) : (
+          <>
+            <Menu>
+              <MenuButton>
+                <WrapItem>
+                  <Avatar
+                    name={user?.name}
+                    src={user?.photo}
+                    size="sm"
+                    cursor="pointer"
+                  />
+                </WrapItem>
+              </MenuButton>
+              <MenuList>
+                <MenuItem
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent immediate close
+                    handleLogout();
+                    onClose(); // manually close after logout
+                  }}
+                >
+                  Logout
+                </MenuItem>
+              </MenuList>
+            </Menu>
 
-                <DrawerBody>
-                  <VStack align="start" spacing={4} mt={4}>
-                    {!userInfo ? (
-                      <>
-                        <Flex justifyContent={"center"}>
-                          <Button
-                            leftIcon={<FaGoogle />}
-                            colorScheme="red"
-                            variant="outline"
-                            size="md"
-                            px={6}
-                            py={2}
-                            borderRadius="md"
-                            _hover={{ bg: "red.50" }}
-                            onClick={handleLogin}
-                          >
-                            Login with Google
-                          </Button>
-                        </Flex>
-                      </>
-                    ) : (
-                      <>
-                        <Menu>
-                          <MenuButton>
-                            <WrapItem>
-                              <Avatar
-                                name={user?.name}
-                                src={user?.photo}
-                                size="sm"
-                                cursor="pointer"
-                              />
-                            </WrapItem>
-                          </MenuButton>
-                          <MenuList>
-                            <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                          </MenuList>
-                        </Menu>
-                        <Box w="100%">
-                          <Link
-                            display="block"
-                            px={4}
-                            py={2}
-                            _hover={{
-                              bg: "blue.100",
-                              textDecoration: "none",
-                              color: "black",
-                            }}
-                            _active={{ bg: "blue.200" }}
-                            to={'/textgen'}
-                          >
-                            Text Generation
-                          </Link>
-                        </Box>
+            {/* All Links below will close drawer on click */}
+            <Box w="100%">
+              <Link
+                display="block"
+                px={4}
+                py={2}
+                _hover={{ bg: "blue.100" }}
+                to="/textgen"
+              >
+                Text Generation
+              </Link>
+            </Box>
 
-                        <Box w="100%">
-                          <Link
-                            display="block"
-                            px={4}
-                            py={2}
-                            _hover={{ bg: "blue.100", textDecoration: "none" }}
-                            _active={{ bg: "blue.200" }}
-                            to={'/imggen'}
-                          >
-                            Image Generation
-                          </Link>
-                        </Box>
+            <Box w="100%">
+              <Link
+                display="block"
+                px={4}
+                py={2}
+                _hover={{ bg: "blue.100" }}
+                to="/imggen"
+              >
+                Image Generation
+              </Link>
+            </Box>
 
-                        <Box w="100%">
-                          <Link
-                            display="block"
-                            px={4}
-                            py={2}
-                            _hover={{ bg: "blue.100", textDecoration: "none" }}
-                            _active={{ bg: "blue.200" }}
-                            to={'/editgen'}
-                          >
-                            Edit Images
-                          </Link>
-                        </Box>
-                      </>
-                    )}
-                  </VStack>
-                </DrawerBody>
-              </DrawerContent>
-            </Drawer>
+            <Box w="100%">
+              <Link
+                display="block"
+                px={4}
+                py={2}
+                _hover={{ bg: "blue.100" }}
+                to="/editgen"
+              >
+                Edit Images
+              </Link>
+            </Box>
+          </>
+        )}
+      </VStack>
+    </DrawerBody>
+  </DrawerContent>
+</Drawer>
+
           </>
         )}
       </Box>

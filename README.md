@@ -52,37 +52,26 @@ It also supports **Google Authentication**, **image uploads with Cloudinary**, a
 
 ## 🖼️ Glimpse of AskAI
 
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/tanishkasharmaaa/AskAI/master/images/mobile1.jpg" width="250"/>
+      <br/>
+      <b>Mobile View 1</b>
+    </td>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/tanishkasharmaaa/AskAI/master/images/mobile3.jpg" width="250"/>
+      <br/>
+      <b>Mobile View 2</b>
+    </td>
+     <td align="center">
+      <img src="https://raw.githubusercontent.com/tanishkasharmaaa/AskAI/master/images/mobile4.jpg" width="250"/>
+      <br/>
+      <b>Mobile View 3</b>
+    </td>
+  </tr>
+</table>
 
-## 🧾 Folder Structure
 
-AskAI/
-├── client/                           # React Frontend
-│   ├── public/                       # Static files
-│   ├── src/
-│   │   ├── assets/                   # Images, icons, etc.
-│   │   ├── components/               # Reusable components (Navbar, Footer, etc.)
-│   │   ├── pages/                    # Page components (Home, Dashboard, Login, etc.)
-│   │   ├── services/                 # Axios setup, API functions
-│   │   ├── context/                  # Global context/state (e.g., AuthContext)
-│   │   ├── hooks/                    # Custom React hooks
-│   │   ├── App.js                    # Main app component
-│   │   └── index.js                  # Entry point
-│   └── package.json
-
-├── server/                           # Node.js Backend
-│   ├── config/                       # Cloudinary & Google OAuth configs
-│   ├── controllers/                  # Route handler logic
-│   ├── middleware/                   # Auth, multer, error handlers
-│   ├── models/                       # Mongoose schemas (User, Query, Image, etc.)
-│   ├── routes/                       # Route definitions (auth, ai, upload, user)
-│   ├── utils/                        # Utility functions
-│   ├── app.js                        # Express app setup
-│   └── server.js                     # Server entry point
-│   └── package.json
-
-├── .env                              # Environment variables (not pushed to GitHub)
-├── .gitignore
-├── README.md
-└── LICENSE (optional)
 
 

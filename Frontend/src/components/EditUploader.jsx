@@ -67,7 +67,7 @@ export default function EditUploader({ handleSendPrompt, loading }) {
       <Flex gap={2}>
         <Flex position="relative" flex={1}>
           <Input
-            placeholder="Type your instruction..."
+            placeholder="Upload Image < 700 kb and Type your instruction ..."
             value={instruction}
             onChange={(e) => setInstruction(e.target.value)}
             pr="2.5rem"

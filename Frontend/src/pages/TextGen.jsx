@@ -279,7 +279,7 @@ export default function TextGeneration() {
           <Box
             border="none"
             width="100%"
-            p={4}
+            p={1}
             display="flex"
             flexDirection="column"
             justifyContent="space-between"
@@ -585,7 +585,7 @@ export default function TextGeneration() {
                       overflowY="auto"
                       maxHeight={["70vh", "75vh", "85vh"]}
                       border="none"
-                      p={4}
+                      p={1}
                       mb={4}
                       borderRadius="md"
                     >

@@ -200,4 +200,18 @@ const displayAll =async(req,res)=>{
   }
 }
 
-module.exports = {editImage, updateEditPrompt,displayAll}
+const deleteEdits = async(req,res) =>{
+try {
+  const token = req.cookies.token||req.headers.authorization?.split(" ")[1];
+  if(!token)return res.status(400).json({message:"Token not found"})
+  const decoded = jwt.verify(token,process.env.JWT_SECRET);
+
+  const images = await editmodel.findOneAndDelete({userId:decoded.id,_id:req.params.id})
+  res.status(200).json({message:"Image deleted sucessfully"})
+} catch (error) {
+  console.log(error)
+  res.status(500).json(error)
+}
+}
+
+module.exports = {editImage, updateEditPrompt,displayAll,deleteEdits}

@@ -107,6 +107,7 @@ export default function EditImage() {
   }
 
   async function handleDeleteChat(id) {
+    console.log(id)
     try {
       const res = await fetch(
         `https://askai-50ai.onrender.com/ai/upload-edit/delete_edit/${id}`,
@@ -117,6 +118,7 @@ export default function EditImage() {
         }
       );
       const data = await res.json();
+      console.log(data)
     } catch (error) {
       console.log(error);
       toast({
@@ -267,15 +269,7 @@ export default function EditImage() {
                       color={light ? "black" : "white"}
                     />
                   </Button>
-                  <Button
-                    bg={"none"}
-                    pt={1}
-                    pb={1}
-                    p={1}
-                    onClick={() => handleDeleteChat(msg._id)}
-                  >
-                    <Icon as={DeleteIcon} />
-                  </Button>
+                  
                   <Button
                     bg={"none"}
                     pt={1}
@@ -287,6 +281,15 @@ export default function EditImage() {
                     }}
                   >
                     <Icon as={GoPencil} />
+                  </Button>
+                  <Button
+                    bg={"none"}
+                    pt={1}
+                    pb={1}
+                    p={1}
+                    onClick={() => handleDeleteChat(msg._id)}
+                  >
+                    <Icon as={DeleteIcon} />
                   </Button>
                 </Flex>
 

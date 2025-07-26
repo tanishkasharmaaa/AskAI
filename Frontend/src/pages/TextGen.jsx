@@ -694,7 +694,7 @@ export default function TextGeneration() {
                               pt={1}
                               pb={1}
                               p={1}
-                              onClick={() => handleDeleteChat(msg._id)}
+                              onClick={() => handleDeleteChat(msg.chatId)}
                             >
                               <Icon
                                 as={DeleteIcon}

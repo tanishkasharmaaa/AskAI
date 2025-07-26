@@ -59,7 +59,7 @@ const deleteChat=async(req,res)=>{
 const chatId = req.params.id
 try {
     const findChatSession = await ChatSession.findById(chatId)
-   findChatSession.chats = findChatSession.chats.filter((chat)=>chat.chatId!==req.params.chatId)
+   findChatSession.chats = findChatSession.chats.filter((chat)=>chat.chatId.toString()!==req.params.chatId)
     await findChatSession.save()
     res.status(200).json({message:"Chat deleted Successfully"})
 

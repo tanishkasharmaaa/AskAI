@@ -110,7 +110,7 @@ export default function EditImage() {
     console.log(id)
     try {
       const res = await fetch(
-        `https://askai-50ai.onrender.com/ai/upload-edit/delete_edit/${id}`,
+        `https://askai-50ai.onrender.com/upload-edit/delete_edit/${id}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },

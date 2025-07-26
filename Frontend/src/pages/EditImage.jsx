@@ -13,7 +13,7 @@ import {
   Spinner,
   useColorModeValue,
 } from "@chakra-ui/react";
-import React, { lazy, Suspense,useRef, useEffect, useState } from "react";
+import React, { lazy, Suspense, useRef, useEffect, useState } from "react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { IoCopyOutline } from "react-icons/io5";
 import { GoPencil } from "react-icons/go";
@@ -31,8 +31,6 @@ export default function EditImage() {
   const [instruction, setInstruction] = useState("");
   const toast = useToast();
   const bottomRef = useRef(null);
-
-
 
   async function handleGenImages() {
     try {
@@ -55,59 +53,81 @@ export default function EditImage() {
     }
   }
   async function handleSendPrompt(file, promptText) {
-  if (!promptText.trim() || !file) return;
-  setLoading(true);
+    if (!promptText.trim() || !file) return;
+    setLoading(true);
 
-  try {
-    const formData = new FormData();
-    formData.append("image", file);
-    formData.append("prompt", promptText);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("prompt", promptText);
 
-    const res = await fetch(
-      "https://askai-50ai.onrender.com/upload-edit/editimage",
-      {
-        method: "POST",
-        credentials: "include",
-        body: formData,
+      const res = await fetch(
+        "https://askai-50ai.onrender.com/upload-edit/editimage",
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast({
+          title: "Success!",
+          description: "Image edited and uploaded.",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+        });
+        setSelectedFile(null);
+        setInstruction("");
+      } else {
+        toast({
+          title: "Upload failed",
+          description: data?.message || "Something went wrong.",
+          status: "error",
+          duration: 2000,
+          isClosable: true,
+        });
+        console.error("Server Error:", data.message);
       }
-    );
-
-    const data = await res.json();
-
-    if (res.ok) {
+    } catch (err) {
+      console.error("Error uploading image:", err.message);
       toast({
-        title: "Success!",
-        description: "Image edited and uploaded.",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-      setSelectedFile(null);
-      setInstruction("");
-    } else {
-      toast({
-        title: "Upload failed",
-        description: data?.message || "Something went wrong.",
+        title: "Error",
+        description: "Failed to upload image",
         status: "error",
         duration: 2000,
         isClosable: true,
       });
-      console.error("Server Error:", data.message);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Error uploading image:", err.message);
-    toast({
-      title: "Error",
-      description: "Failed to upload image",
-      status: "error",
-      duration: 2000,
-      isClosable: true,
-    });
-  } finally {
-    setLoading(false);
   }
-}
 
+  async function handleDeleteChat(id) {
+    try {
+      const res = await fetch(
+        `https://askai-50ai.onrender.com/ai/upload-edit/delete_edit/${id}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
+      const data = await res.json();
+    } catch (error) {
+      console.log(error);
+      toast({
+        title: "Error",
+        description: "Failed to update the prompt.",
+        status: "error",
+        duration: 1500,
+        isClosable: true,
+      });
+    }
+  }
 
   async function handleUpdateChat(id) {
     try {
@@ -149,7 +169,6 @@ export default function EditImage() {
         duration: 1500,
         isClosable: true,
       });
-   
     } catch (error) {
       console.log(error);
       toast({
@@ -162,11 +181,11 @@ export default function EditImage() {
     }
   }
 
-    useEffect(() => {
-  if (bottomRef.current) {
-    bottomRef.current.scrollIntoView({ behavior: "smooth" });
-  }
-}, [messages]);
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   useEffect(() => {
     handleGenImages();
@@ -178,7 +197,13 @@ export default function EditImage() {
         <Box
           flex="1"
           overflowY="auto"
-           height={{ base: "80vh", sm: "80vh", md: "80vh", lg: "80vh", xl: "80vh" }}
+          height={{
+            base: "80vh",
+            sm: "80vh",
+            md: "80vh",
+            lg: "80vh",
+            xl: "80vh",
+          }}
           border="none"
           p={4}
           mb={4}
@@ -242,7 +267,15 @@ export default function EditImage() {
                       color={light ? "black" : "white"}
                     />
                   </Button>
-
+                  <Button
+                    bg={"none"}
+                    pt={1}
+                    pb={1}
+                    p={1}
+                    onClick={() => handleDeleteChat(msg._id)}
+                  >
+                    <Icon as={DeleteIcon} />
+                  </Button>
                   <Button
                     bg={"none"}
                     pt={1}
@@ -278,7 +311,7 @@ export default function EditImage() {
           ) : (
             <Flex minH="80vh" justifyContent="center" alignItems="center">
               <Box>
-                <Heading fontSize={'5xl'}>Edit Image</Heading>
+                <Heading fontSize={"5xl"}>Edit Image</Heading>
               </Box>
             </Flex>
           )}
@@ -286,8 +319,8 @@ export default function EditImage() {
       </Box>
 
       {/* Input prompt */}
-     
-<EditUploader handleSendPrompt={handleSendPrompt} loading={loading}/>
+
+      <EditUploader handleSendPrompt={handleSendPrompt} loading={loading} />
     </Box>
   );
 }

@@ -8,6 +8,6 @@ const authMiddleware = require("../middleware/authMiddleware");
 router.post("/editimage",authMiddleware,upload.single("image"),editImage);
 router.patch("/edit/:id",authMiddleware,updateEditPrompt)
 router.get("/edits",authMiddleware,displayAll)
-router.delete("/delete_edit",authMiddleware,deleteEdits)
+router.delete("/delete_edit/:id",authMiddleware,deleteEdits)
 
 module.exports = router;

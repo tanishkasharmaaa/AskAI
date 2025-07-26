@@ -107,7 +107,7 @@ export default function TextGeneration() {
   }
 
   async function handleDeleteChat(id) {
-    console.log(selectedChat._id, id);
+    
     try {
       const res = await fetch(
         `https://askai-50ai.onrender.com/ai/chat/${selectedChat._id}/${id}`,
@@ -118,7 +118,7 @@ export default function TextGeneration() {
         }
       );
       const data = await res.json();
-      console.log(data);
+     
     } catch (error) {
       console.log(error);
     }
